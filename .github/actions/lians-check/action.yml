@@ -1,0 +1,40 @@
+name: Lians check
+description: Checks each pull request against the ticket as it reads now, and flags requirements that changed after work started.
+branding:
+  icon: check-square
+  color: red
+inputs:
+  anthropic-api-key:
+    description: Claude API key. Without it, Lians posts a setup note instead of a review.
+    required: false
+  linear-api-key:
+    description: Linear API key (read-only), to check Linear tickets named in the PR title, branch or body.
+    required: false
+  github-token:
+    description: Token used to read the PR and tickets and to post the comment.
+    default: ${{ github.token }}
+  fail-on-missed:
+    description: Fail the check when a requirement is missed or partly built.
+    default: "false"
+  model:
+    description: Claude model used for the review.
+    default: claude-opus-5-5
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - shell: bash
+      run: python -m pip install --quiet --disable-pip-version-check "anthropic>=0.103"
+    - shell: bash
+      env:
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        LINEAR_API_KEY: ${{ inputs.linear-api-key }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        LIANS_CHECK_MODEL: ${{ inputs.model }}
+        FAIL_ON_MISSED: ${{ inputs.fail-on-missed }}
+      run: |
+        args=()
+        [ "$FAIL_ON_MISSED" = "true" ] && args+=(--fail-on-missed)
+        python "$GITHUB_ACTION_PATH/lians_check.py" "${args[@]}"
