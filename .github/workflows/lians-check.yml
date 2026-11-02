@@ -1,10 +1,9 @@
-# Copy to .github/workflows/lians-check.yml, and copy action.yml + lians_check.py to .github/actions/lians-check/.
 name: Lians check
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited]
   issues:
-    types: [edited]          # a ticket changed: re-check the open PRs built from it
+    types: [edited]
 permissions:
   contents: read
   pull-requests: write
@@ -16,8 +15,6 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/lians-check
+      - uses: ebeirne/lians-check@v1
         with:
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          linear-api-key: ${{ secrets.LINEAR_API_KEY }}
